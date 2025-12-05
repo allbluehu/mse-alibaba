@@ -7,28 +7,28 @@ spring:
   application:
     name: auth-service
 
-  config:
-    import:
-      - optional:nacos:${spring.application.name}.yml
-      - optional:nacos:common.yml
-
-  cloud:
-    nacos:
-      discovery:
-        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
-        namespace: ${NACOS_NAMESPACE:}
-        group: ${NACOS_GROUP:DEFAULT_GROUP}
-      config:
-        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
-        namespace: ${NACOS_NAMESPACE:}
-        group: ${NACOS_GROUP:DEFAULT_GROUP}
-        file-extension: yaml
-        refresh-enabled: true
+#  config:
+#    import:
+#      - optional:nacos:${spring.application.name}.yml
+#      - optional:nacos:common.yml
+#
+#  cloud:
+#    nacos:
+#      discovery:
+#        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
+#        namespace: ${NACOS_NAMESPACE:}
+#        group: ${NACOS_GROUP:DEFAULT_GROUP}
+#      config:
+#        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
+#        namespace: ${NACOS_NAMESPACE:}
+#        group: ${NACOS_GROUP:DEFAULT_GROUP}
+#        file-extension: yaml
+#        refresh-enabled: true
 
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:auth_db}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/oidc_auth?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:root}
+    password: ${MYSQL_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -61,19 +61,73 @@ spring:
           max-idle: 10
           min-idle: 0
 
-# 应用配置
+  security:
+    oauth2:
+      authorizationserver:
+        endpoint:
+          oidc:
+            user-info:
+              enabled: true
+        client:
+          web-app:
+            registration:
+              client-id: web-app
+              client-secret: "{bcrypt}$2a$10$your_hashed_secret"
+              authorization-grant-types:
+                - authorization_code
+                - refresh_token
+              redirect-uris:
+                - http://localhost:8080/login/oauth2/code/web-app
+              scopes:
+                - openid
+                - profile
+                - email
+                - read
+                - write
+              require-authorization-consent: true
+
+  session:
+    timeout: 86400 # 24小时
+    redis:
+      namespace: spring:session:oidc
+      flush-mode: on_save
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+
+logging:
+  level:
+    com.example.authserver: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: DEBUG
+  file:
+    name: logs/oidc-auth-server.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# 自定义配置
 app:
-  jwt:
-    secret: "mySecretKeyForJWTTokenGeneration2023WithSpringBoot318"
-    expiration: 86400        # 24小时
-    refresh-expiration: 604800 # 7天
-  sms:
-    code-length: 6
-    code-expire: 300         # 5分钟
-    send-interval: 60        # 1分钟
-  wechat:
-    app-id: ${WECHAT_APP_ID:your_wechat_app_id}
-    app-secret: ${WECHAT_APP_SECRET:your_wechat_app_secret}
+  oidc:
+    issuer: http://localhost:9000/auth
+    # 微信配置
+    wechat:
+      app-id: ${WECHAT_APP_ID:你的微信AppID}
+      app-secret: ${WECHAT_APP_SECRET:你的微信AppSecret}
+    # 抖音配置
+    douyin:
+      client-key: ${DOUYIN_CLIENT_KEY:你的抖音ClientKey}
+      client-secret: ${DOUYIN_CLIENT_SECRET:你的抖音ClientSecret}
+  security:
+    token:
+      access-token-ttl: 1800 # 30分钟
+      refresh-token-ttl: 86400 # 1天
 
 # Actuator配置
 management:
@@ -88,12 +142,3 @@ management:
     health:
       show-details: always
       show-components: always
-
-# 日志配置
-logging:
-  level:
-    com.example.auth: INFO
-    org.springframework.security: INFO
-    org.hibernate.SQL: ${SHOW_SQL:false}
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
