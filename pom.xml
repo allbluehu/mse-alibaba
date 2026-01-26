@@ -11,6 +11,7 @@
     <modules>
         <module>auth-service</module>
         <module>gateway-service</module>
+        <module>admin</module>
     </modules>
 
     <!-- 父POM核心配置 -->

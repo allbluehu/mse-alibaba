@@ -1,7 +1,7 @@
 server:
-  port: 8081
-  servlet:
-    context-path: /auth
+  port: 9000
+#  servlet:
+#    context-path: /auth
 
 spring:
   application:
@@ -26,7 +26,7 @@ spring:
 #        refresh-enabled: true
 
   datasource:
-    url: jdbc:mysql://localhost:3306/oidc_auth?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/oidc_auth?useUnicode=true&allowPublicKeyRetrieval=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: ${MYSQL_USERNAME:root}
     password: ${MYSQL_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -40,7 +40,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: ${SHOW_SQL:false}
+    show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -68,23 +68,6 @@ spring:
           oidc:
             user-info:
               enabled: true
-        client:
-          web-app:
-            registration:
-              client-id: web-app
-              client-secret: "{bcrypt}$2a$10$your_hashed_secret"
-              authorization-grant-types:
-                - authorization_code
-                - refresh_token
-              redirect-uris:
-                - http://localhost:8080/login/oauth2/code/web-app
-              scopes:
-                - openid
-                - profile
-                - email
-                - read
-                - write
-              require-authorization-consent: true
 
   session:
     timeout: 86400 # 24小时
@@ -104,30 +87,13 @@ spring:
 
 logging:
   level:
-    com.example.authserver: DEBUG
-    org.springframework.security: INFO
-    org.springframework.security.oauth2: DEBUG
+    org.springframework.web: trace
+    org.springframework.security: trace
+    org.springframework.security.oauth2: trace
   file:
     name: logs/oidc-auth-server.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-
-# 自定义配置
-app:
-  oidc:
-    issuer: http://localhost:9000/auth
-    # 微信配置
-    wechat:
-      app-id: ${WECHAT_APP_ID:你的微信AppID}
-      app-secret: ${WECHAT_APP_SECRET:你的微信AppSecret}
-    # 抖音配置
-    douyin:
-      client-key: ${DOUYIN_CLIENT_KEY:你的抖音ClientKey}
-      client-secret: ${DOUYIN_CLIENT_SECRET:你的抖音ClientSecret}
-  security:
-    token:
-      access-token-ttl: 1800 # 30分钟
-      refresh-token-ttl: 86400 # 1天
 
 # Actuator配置
 management:

@@ -1,0 +1,65 @@
+server:
+  port: 8180
+
+spring:
+#  ssl:
+#    bundle:
+#      jks:
+#        demo-client:
+#          key:
+#            alias: demo-client-sample
+#            password: password
+#          keystore:
+#            location: classpath:keystore.p12
+#            password: password
+#            type: PKCS12
+#          truststore:
+#            location: classpath:keystore.p12
+#            password: password
+#            type: PKCS12
+#        self-signed-demo-client:
+#          key:
+#            alias: self-signed-demo-client-sample
+#            password: password
+#          keystore:
+#            location: classpath:keystore-self-signed.p12
+#            password: password
+#            type: PKCS12
+#          truststore:
+#            location: classpath:keystore-self-signed.p12
+#            password: password
+#            type: PKCS12
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        registration:
+          admin-oidc:
+            provider: auth-service
+            client-id: admin
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://127.0.0.1:8080/login/oauth2/code/{registrationId}"
+            scope: openid, profile
+            client-name: admin-oidc
+        provider:
+          auth-service:
+            issuer-uri: http://localhost:9000
+
+messages:
+  base-uri: https://127.0.0.1:8443/messages
+
+user-messages:
+  base-uri: http://127.0.0.1:8091/user/messages
+
+
+logging:
+  level:
+    org.springframework.web: trace
+    org.springframework.security: trace
+    org.springframework.security.oauth2: trace
+  file:
+    name: logs/oidc-auth-server.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
